@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "903986789534",
+    "project_id": "recipeapp-ac2f3",
+    "storage_bucket": "recipeapp-ac2f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903986789534:android:79855a399150d137df4f8f",
+        "android_client_info": {
+          "package_name": "com.example.mealmateapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyZRvWVH8VYluOMaWiVCepyizvKO_tWp0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903986789534:android:e0dcd510a98c77f6df4f8f",
+        "android_client_info": {
+          "package_name": "com.example.recipe_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyZRvWVH8VYluOMaWiVCepyizvKO_tWp0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
