@@ -1,88 +1,53 @@
 import 'package:flutter/material.dart';
 
-class IngredientInput extends StatefulWidget {
-  final Map<String, dynamic> ingredient;
-  final Function(Map<String, dynamic>) onUpdate;
-  final VoidCallback onDelete;
+class InputField extends StatefulWidget {
+  final TextEditingController controller;
+  final String label;
+  final bool obscureText;
+  final TextInputType keyboardType;
 
-  const IngredientInput({
+  const InputField({
     super.key,
-    required this.ingredient,
-    required this.onUpdate,
-    required this.onDelete,
+    required this.controller,
+    required this.label,
+    this.obscureText = false,
+    this.keyboardType = TextInputType.text,
   });
 
   @override
-  _IngredientInputState createState() => _IngredientInputState();
+  _InputFieldState createState() => _InputFieldState();
 }
 
-class _IngredientInputState extends State<IngredientInput> {
-  late TextEditingController _nameController;
-  late TextEditingController _quantityController;
+class _InputFieldState extends State<InputField> {
+  bool _isObscured = true;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.ingredient['name']);
-    _quantityController = TextEditingController(text: widget.ingredient['quantity'].toString());
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _quantityController.dispose();
-    super.dispose();
+    _isObscured = widget.obscureText;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) {
-                widget.onUpdate({
-                  'name': value,
-                  'quantity': double.tryParse(_quantityController.text) ?? 1.0,
-                  'unit': widget.ingredient['unit'],
-                  'category': widget.ingredient['category'],
-                });
-              },
-            ),
+    return TextField(
+      controller: widget.controller,
+      obscureText: _isObscured,
+      keyboardType: widget.keyboardType,
+      decoration: InputDecoration(
+        labelText: widget.label,
+        border: const OutlineInputBorder(),
+        suffixIcon: widget.obscureText
+            ? IconButton(
+          icon: Icon(
+            _isObscured ? Icons.visibility : Icons.visibility_off,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _quantityController,
-              decoration: const InputDecoration(
-                labelText: 'Qty',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                widget.onUpdate({
-                  'name': _nameController.text,
-                  'quantity': double.tryParse(value) ?? 1.0,
-                  'unit': widget.ingredient['unit'],
-                  'category': widget.ingredient['category'],
-                });
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: widget.onDelete,
-          ),
-        ],
+          onPressed: () {
+            setState(() {
+              _isObscured = !_isObscured;
+            });
+          },
+        )
+            : null,
       ),
     );
   }

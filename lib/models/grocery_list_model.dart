@@ -1,4 +1,36 @@
-import 'package:mealmateapp/models/recipe_model.dart'; // Import Recipe
+import 'package:mealmateapp/models/recipe_model.dart'; // Add this import
+
+class GroceryList {
+  final String id;
+  final String name;
+  final List<GroceryItem> items;
+  final List<Recipe> recipes;
+  final DateTime createdAt;
+
+  GroceryList({
+    required this.id,
+    required this.name,
+    required this.items,
+    required this.recipes,
+    required this.createdAt,
+  });
+
+  GroceryList copyWith({
+    String? id,
+    String? name,
+    List<GroceryItem>? items,
+    List<Recipe>? recipes,
+    DateTime? createdAt,
+  }) {
+    return GroceryList(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      items: items ?? this.items,
+      recipes: recipes ?? this.recipes,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+}
 
 class GroceryItem {
   final String id;
@@ -42,20 +74,4 @@ class GroceryItem {
       deletedAt: deletedAt ?? this.deletedAt,
     );
   }
-}
-
-class GroceryList {
-  final String id;
-  final String name;
-  final List<GroceryItem> items;
-  final List<Recipe> recipes; // Line 50: Now recognized
-  final DateTime createdAt;
-
-  GroceryList({
-    required this.id,
-    required this.name,
-    required this.items,
-    required this.recipes,
-    required this.createdAt,
-  });
 }

@@ -7,20 +7,33 @@ version: 1.0.0+1
 environment:
   sdk: ^3.7.2
 
+#dependencies:
+#  flutter:
+#    sdk: flutter
+#  provider: ^6.1.2
+#  share_plus: ^9.0.0
+#  image_picker: ^1.1.2
+#  firebase_core: ^2.24.0
+#  firebase_auth: ^4.15.0
+#  cloud_firestore: ^4.13.0
+#  firebase_storage: ^11.5.0
+#  cupertino_icons: ^1.0.8
+#  permission_handler: ^11.3.1
+#  sensors_plus: ^5.0.1
+#  url_launcher: ^6.3.0 # Ensure this is present
+#  firebase_database: ^10.5.0  # Add this if using Realtime Database
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.1.2
-  share_plus: ^9.0.0
-  image_picker: ^1.1.2
   firebase_core: ^2.24.0
   firebase_auth: ^4.15.0
-  cloud_firestore: ^4.13.0
-  firebase_storage: ^11.5.0
-  cupertino_icons: ^1.0.8
-  permission_handler: ^11.3.1
-  sensors_plus: ^5.0.1
-  url_launcher: ^6.3.0 # Ensure this is present
+  firebase_database: ^10.3.7
+  firebase_storage: ^11.5.5
+  provider: ^6.1.1
+  google_fonts: ^6.1.0
+  image_picker: ^1.0.4
+  share_plus: ^7.2.1
+  sensors_plus: ^4.0.2
 
 dev_dependencies:
   flutter_test:

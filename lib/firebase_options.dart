@@ -54,12 +54,13 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCkfn5sJe6P9hZF4CNMqlolR00-mLhpNrc',
-    appId: '1:903986789534:web:584f512388d9d943df4f8f',
-    messagingSenderId: '903986789534',
-    projectId: 'recipeapp-ac2f3',
-    authDomain: 'recipeapp-ac2f3.firebaseapp.com',
-    storageBucket: 'recipeapp-ac2f3.firebasestorage.app',
-    measurementId: 'G-3REZ2RVFBJ',
+    apiKey: 'AIzaSyAyZRvWVH8VYluOMaWiVCepyizvKO_tWp0', // Use the API key you provided
+    appId: '1:903986789534:web:584f512388d9d943df4f8f', // Already correct
+    messagingSenderId: '903986789534', // Already correct
+    projectId: 'recipeapp-ac2f3', // Already correct
+    authDomain: 'recipeapp-ac2f3.firebaseapp.com', // Already correct
+    storageBucket: 'recipeapp-ac2f3.firebasestorage.app', // Already correct
+    measurementId: 'G-3REZ2RVFBJ', // Already correct
+    databaseURL: 'https://recipeapp-ac2f3-default-rtdb.firebaseio.com', // Add this line
   );
 }

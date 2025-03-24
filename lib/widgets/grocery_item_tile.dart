@@ -3,28 +3,55 @@ import '../models/grocery_list_model.dart';
 
 class GroceryItemTile extends StatelessWidget {
   final GroceryItem item;
-  final Function(bool) onToggle;
+  final Function(bool) onPurchased;
   final VoidCallback onDelete;
 
   const GroceryItemTile({
     super.key,
     required this.item,
-    required this.onToggle,
+    required this.onPurchased,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Checkbox(
-        value: item.purchased,
-        onChanged: (value) => onToggle(value!),
+    return Dismissible(
+      key: Key(item.id),
+      background: Container(
+        color: Colors.green,
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        child: const Icon(Icons.check, color: Colors.white),
       ),
-      title: Text(item.name ?? 'Unknown Item'),
-      subtitle: Text('${item.quantity ?? 0} ${item.unit ?? ''}'),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete, color: Colors.red),
-        onPressed: onDelete,
+      secondaryBackground: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      onDismissed: (direction) {
+        if (direction == DismissDirection.startToEnd) {
+          onPurchased(!item.purchased);
+        } else {
+          onDelete();
+        }
+      },
+      child: Card(
+        child: ListTile(
+          leading: Checkbox(
+            value: item.purchased,
+            onChanged: (value) {
+              onPurchased(value!);
+            },
+          ),
+          title: Text(
+            item.name,
+            style: TextStyle(
+              decoration: item.purchased ? TextDecoration.lineThrough : null,
+            ),
+          ),
+          subtitle: Text('${item.quantity} ${item.unit} (${item.category})'),
+        ),
       ),
     );
   }

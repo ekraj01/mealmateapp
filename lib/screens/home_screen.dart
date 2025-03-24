@@ -1,70 +1,113 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/auth_provider.dart';
-import '../providers/grocery_provider.dart';
-import '../widgets/grocery_summary.dart';
+import 'package:mealmateapp/models/grocery_list_model.dart';
+import 'package:mealmateapp/models/recipe_model.dart';
+import 'package:mealmateapp/providers/grocery_provider.dart';
+import 'package:mealmateapp/providers/recipe_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
-    // Fetch initial data only if user is logged in
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    );
+    _controller.forward();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      if (authProvider.isLoggedIn) {
-        Provider.of<GroceryProvider>(context, listen: false).fetchGroceryLists();
-      }
+      Provider.of<GroceryProvider>(context, listen: false).fetchGroceryLists();
+      Provider.of<RecipeProvider>(context, listen: false).fetchRecipes();
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final groceryProvider = Provider.of<GroceryProvider>(context);
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
-    // Navigate to login if user is not logged in
-    if (!authProvider.isLoggedIn) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacementNamed(context, '/login');
-      });
-    }
+  Widget _buildActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 40, color: color),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final groceryProvider = Provider.of<GroceryProvider>(context);
+    final recipeProvider = Provider.of<RecipeProvider>(context);
+    final groceryLists = groceryProvider.groceryLists;
+    final recipes = recipeProvider.recipes;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meal Planner & Grocery App'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pushNamed(context, '/settings');
-            },
-          ),
-        ],
+        title: const Text('MealMate'),
       ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
-          children: <Widget>[
-            UserAccountsDrawerHeader(
-              accountName: Text(authProvider.currentUser?.displayName ?? 'User'),
-              accountEmail: Text(authProvider.currentUser?.email ?? 'user@example.com'),
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: authProvider.currentUser?.photoURL != null
-                    ? NetworkImage(authProvider.currentUser!.photoURL!)
-                    : null,
-                child: authProvider.currentUser?.photoURL == null
-                    ? const Icon(Icons.person)
-                    : null,
-              ),
+          children: [
+            DrawerHeader(
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
+                gradient: LinearGradient(
+                  colors: [Colors.teal, Colors.teal.shade300],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Icon(
+                    Icons.restaurant_menu,
+                    size: 64,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'MealMate',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
             ListTile(
@@ -79,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Recipes'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/recipe');
+                Navigator.pushNamed(context, '/recipe_list');
               },
             ),
             ListTile(
@@ -91,97 +134,135 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.list),
+              leading: const Icon(Icons.history),
               title: const Text('Item Management'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/item_management');
               },
             ),
-            const Divider(),
             ListTile(
-              leading: const Icon(Icons.exit_to_app),
-              title: const Text('Logout'),
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
-                authProvider.signOut();
-                Navigator.pushReplacementNamed(context, '/login');
+                Navigator.pushNamed(context, '/settings');
               },
             ),
           ],
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          if (authProvider.isLoggedIn) {
-            await groceryProvider.fetchGroceryLists();
-          }
-        },
+      body: FadeTransition(
+        opacity: _fadeAnimation,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Hello, ${authProvider.currentUser?.displayName ?? 'there'}!',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'What are you cooking today?',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.grey[600],
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Welcome to MealMate',
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
               ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Current Grocery Lists', () {
-                Navigator.pushNamed(context, '/grocery');
-              }),
-              const SizedBox(height: 12),
-              groceryProvider.groceryLists.isEmpty
-                  ? _buildEmptyState(
-                'No grocery lists',
-                'Create a grocery list for your next shopping trip',
-                Icons.shopping_cart,
-                    () {
-                  Navigator.pushNamed(context, '/grocery');
-                },
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Quick Actions',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionCard(
+                        'Add Recipe',
+                        Icons.add_circle,
+                        Colors.orangeAccent,
+                            () {
+                          Navigator.pushNamed(context, '/recipe_list');
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildActionCard(
+                        'New Grocery List',
+                        Icons.add_shopping_cart,
+                        Colors.teal,
+                            () {
+                          Navigator.pushNamed(context, '/grocery', arguments: 'new');
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Recent Grocery Lists',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              groceryLists.isEmpty
+                  ? Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    'No grocery lists yet',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
               )
-                  : Column(
-                children: groceryProvider.groceryLists
-                    .take(2)
-                    .map((list) => GrocerySummary(groceryList: list))
-                    .toList(),
+                  : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: groceryLists.length > 3 ? 3 : groceryLists.length,
+                itemBuilder: (context, index) {
+                  final list = groceryLists[index];
+                  return AnimatedGroceryListTile(
+                    list: list,
+                    onTap: () {
+                      Navigator.pushNamed(context, '/grocery', arguments: list.id);
+                    },
+                  );
+                },
               ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Quick Actions', null),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActionCard(
-                      'Add Recipe',
-                      Icons.add_circle,
-                      Colors.orange,
-                          () {
-                        Navigator.pushNamed(context, '/recipe');
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildActionCard(
-                      'Create Grocery List',
-                      Icons.add_shopping_cart,
-                      Colors.purple,
-                          () {
-                        Navigator.pushNamed(context, '/grocery');
-                      },
-                    ),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Recent Recipes',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
+              recipes.isEmpty
+                  ? Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    'No recipes yet',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              )
+                  : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: recipes.length > 3 ? 3 : recipes.length,
+                itemBuilder: (context, index) {
+                  final recipe = recipes[index];
+                  return AnimatedRecipeTile(
+                    recipe: recipe,
+                    onTap: () {
+                      Navigator.pushNamed(context, '/recipe', arguments: recipe.id);
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -199,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: const Text('Add New Recipe'),
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.pushNamed(context, '/recipe', arguments: 'new');
+                      Navigator.pushNamed(context, '/recipe_edit', arguments: 'new');
                     },
                   ),
                   ListTile(
@@ -219,97 +300,149 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
 
-  Widget _buildSectionHeader(String title, VoidCallback? onSeeAll) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        if (onSeeAll != null)
-          TextButton(
-            onPressed: onSeeAll,
-            child: const Text('See All'),
-          ),
-      ],
+class AnimatedGroceryListTile extends StatefulWidget {
+  final GroceryList list;
+  final VoidCallback onTap;
+
+  const AnimatedGroceryListTile({
+    super.key,
+    required this.list,
+    required this.onTap,
+  });
+
+  @override
+  _AnimatedGroceryListTileState createState() => _AnimatedGroceryListTileState();
+}
+
+class _AnimatedGroceryListTileState extends State<AnimatedGroceryListTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
     );
+    _animation = Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+    _controller.forward();
   }
 
-  Widget _buildEmptyState(
-      String title,
-      String message,
-      IconData icon,
-      VoidCallback onAction,
-      ) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 48,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onAction,
-            child: const Text('Add Now'),
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
-  Widget _buildActionCard(
-      String title,
-      IconData icon,
-      Color color,
-      VoidCallback onTap,
-      ) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+  @override
+  Widget build(BuildContext context) {
+    final completedItems = widget.list.items.where((item) => item.purchased).length;
+    final progress = widget.list.items.isEmpty ? 0.0 : completedItems / widget.list.items.length;
+
+    return SlideTransition(
+      position: _animation,
+      child: Card(
+        child: ListTile(
+          title: Text(
+            widget.list.name,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                icon,
-                size: 32,
-                color: color,
-              ),
-              const SizedBox(height: 8),
               Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                '${widget.list.items.length} items',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 4),
+              LinearProgressIndicator(
+                value: progress,
+                backgroundColor: Colors.grey[200],
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.teal),
               ),
             ],
           ),
+          trailing: Text(
+            '${(progress * 100).toInt()}%',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Colors.teal,
+            ),
+          ),
+          onTap: widget.onTap,
+        ),
+      ),
+    );
+  }
+}
+
+class AnimatedRecipeTile extends StatefulWidget {
+  final Recipe recipe;
+  final VoidCallback onTap;
+
+  const AnimatedRecipeTile({
+    super.key,
+    required this.recipe,
+    required this.onTap,
+  });
+
+  @override
+  _AnimatedRecipeTileState createState() => _AnimatedRecipeTileState();
+}
+
+class _AnimatedRecipeTileState extends State<AnimatedRecipeTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _animation = Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _animation,
+      child: Card(
+        child: ListTile(
+          title: Text(
+            widget.recipe.name,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          subtitle: Text(
+            '${widget.recipe.ingredients.length} ingredients',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          onTap: widget.onTap,
         ),
       ),
     );
